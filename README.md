@@ -1,6 +1,6 @@
 # Briefly
 
-Briefly is a personal news and audio briefing assistant. It takes a user’s interests and location, fetches relevant news, and returns short text and audio briefings that can be played in a mobile app built with Expo and React Native.
+Briefly is a personal news and audio briefing assistant. It takes a user’s interests and location, fetches relevant news, and returns short text and audio briefings that can be played in a mobile app 
 
 > Backend: FastAPI + SQLModel + PostgreSQL  
 > Frontend: Flutter  
