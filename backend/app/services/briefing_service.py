@@ -2,7 +2,7 @@
 import json
 from typing import List
 
-from app.models.intent import Intent
+from app.schemas.intent import Intent
 from app.models.news_article import Article
 from app.services.llm_client import call_llm_text
 from app.models.persona import PersonaConfig  # where PERSONAS lives

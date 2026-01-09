@@ -18,6 +18,8 @@ class AudioBriefing(SQLModel, table=True):
         default=None, foreign_key="search_history.id", index=True, nullable=True
     )
 
+
+    query: str = Field(nullable=False)
     persona: str = Field(nullable=False)         # e.g. "streetwise"
     city: Optional[str] = Field(default=None)
     country: Optional[str] = Field(default=None)

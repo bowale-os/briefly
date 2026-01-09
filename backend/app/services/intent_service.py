@@ -1,7 +1,7 @@
 # app/services/intent_service.py
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.intent import Intent
+from app.schemas.intent import Intent
 from app.models.search_history import SearchHistory
 
 

@@ -8,12 +8,6 @@ import uuid
 
 
 class SearchHistory(SQLModel, table=True):
-
-    """
-    mirror of intent class + the time it was created
-    just for storage
-    """
-
     __tablename__ = "search_history"
 
     id: uuid.UUID = Field(
@@ -30,17 +24,16 @@ class SearchHistory(SQLModel, table=True):
         nullable=False,
     )
 
-    # raw intent snapshot
     raw_query: str = Field(nullable=False)
-    city: str = Field(default=None, index=True)
-    country: str = Field(default=None, index=True)
-    country_code: str =  Field(nullable=False)
-    timeframe: str = Field(default=None)
-    focus: str = Field(default=None)
-    intent_label: str =  Field(nullable=False)
 
+    city: Optional[str] = Field(default=None, index=True, nullable=True)
+    country: Optional[str] = Field(default=None, index=True, nullable=True)
+    country_code: Optional[str] = Field(nullable=False)
+    timeframe: Optional[str] = Field(default=None, nullable=True)
+    focus: Optional[str] = Field(default=None, nullable=True)
+    intent_label: str = Field(nullable=False)
 
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,  # NOTE: no timezone, no lambda
+        default_factory=datetime.utcnow,
         nullable=False,
     )

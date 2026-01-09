@@ -18,3 +18,4 @@ google-genai
 pygooglenews
 elevenlabs
 google-cloud-storage
+psycopg2

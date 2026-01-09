@@ -8,10 +8,9 @@ from datetime import datetime
 from app.core.db import get_db
 
 from app.models.user import User
-from app.models.intent import IntentRequest, Intent
+from app.schemas.intent import IntentRequest, Intent
 from app.models.news_article import Article
 from app.models.persona import PERSONAS
-from app.models.voice import ElevenLabsRequest
 from app.models.audio_briefing import AudioBriefing
 
 from app.services.intent_service import build_intent_and_log
@@ -62,7 +61,7 @@ def select_top_articles(articles: list[Article], max_count: int = 10) -> list[Ar
 
 
 @router.post("/narration")
-async def intent_to_breakdown(
+async def intent_to_voice(
     payload: IntentRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -93,27 +92,7 @@ async def intent_to_breakdown(
     intro = build_brief_intro(intent, persona_cfg)
     narration = build_narration_text(intent, top_articles, persona_cfg)
 
-    return {
-        "intent": intent,
-        "search_history_id": search_history_id,
-        "persona": persona_cfg.key,
-        "intro": intro,
-        "narration": narration,
-        "articles": top_articles,
-    }
-
-
-
-@router.post("/voice")
-async def get_elevenlabs_voice(
-    payload: ElevenLabsRequest,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-    ):
-
-    persona_cfg = PERSONAS[payload.persona]
-
-    full_script = f"{payload.intro.strip()}\n\n{payload.narration.strip()}"
+    full_script = f"{intro.strip()}\n\n{narration.strip()}"
 
     audio_bytes = synthesize_briefing_to_bytes(
         full_script=full_script,
@@ -122,21 +101,33 @@ async def get_elevenlabs_voice(
 
     filename = make_briefing_filename()
     audio_url = await upload_audio_and_get_url(audio_bytes, filename)
-    intent = payload.intent
+    intent = intent
 
     audio_briefing = AudioBriefing(
+        query=query,
         user_id=current_user.id,
         persona=payload.persona,
         city=intent.city,
         country=intent.country,
         audio_url=audio_url,
+        audio_filename=filename,
         script=full_script,
-        search_history_id=payload.search_history_id
+        search_history_id=search_history_id
     )
+
+    db.add(audio_briefing)
+    await db.commit()
+    await db.refresh(audio_briefing)
 
 
     return {
-        "persona": persona_cfg.display_name,
+        "id": str(audio_briefing.id),
+        "query": audio_briefing.query,
+        "persona_name": persona_cfg.display_name,
         "script": full_script,
-        "audio_url": audio_url,
+        "city": audio_briefing.city,
+        "country": audio_briefing.country,
+        "created_at": audio_briefing.created_at.isoformat(),
+        "has_audio": True
     }
+

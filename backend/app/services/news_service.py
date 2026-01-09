@@ -7,7 +7,7 @@ import random
 
 from pygooglenews import GoogleNews
 
-from app.models.intent import Intent
+from app.schemas.intent import Intent
 from app.models.news_article import NewsSearchResponse, Article
 
 
@@ -34,30 +34,43 @@ def pick_random_articles(articles: list[Article], max_count: int = 40) -> list[A
 def _fallback_build_query_from_intent(intent: Intent) -> str:
     parts: list[str] = []
 
+    # Location
     if intent.country:
-        parts.append(intent.country)
-    if intent.city:
-        parts.append(intent.city)
-    
+        if intent.city:
+            parts.append(f"{intent.city} {intent.country}")
+        else:
+            parts.append(intent.country)
+    else:
+        if intent.intent_label in {"economy_and_jobs", "politics_and_governance"}:
+            parts.append("global")
 
+    # Topic
+    if intent.topic:
+        parts.append(intent.topic)
+
+    # Tags
+    if intent.tags:
+        tag_expr = " OR ".join(intent.tags[:6])
+        parts.append(f"({tag_expr})")
+
+    # Focus expansion
     focus = intent.focus or "general"
-    if focus != "general":
-        extra = FOCUS_KEYWORDS.get(focus, "")
-        if extra:
-            parts.append(f"({extra})")
+    extra = FOCUS_KEYWORDS.get(focus, "")
+    if extra:
+        parts.append(f"({extra})")
 
-    return " ".join(parts) or "top news"
+    query = " ".join(p for p in parts if p)
+    return query or (intent.raw_query or "top news")
 
 
 
 async def fetch_articles_for_intent(intent: Intent) -> NewsSearchResponse:
-    country_code = intent.country_code.upper()
+    country_code = intent.country_code.upper() if intent.country_code else ""
     
     try:
         gn = GoogleNews(lang='en', country=country_code)
         
-        # 1) Prefer Gemini-optimized query
-        query = (getattr(intent, "search_query", None) or "").strip()
+        query = _fallback_build_query_from_intent(intent)
 
         # 2) Fallback builder if Gemini didn't provide one
         if not query:
@@ -128,8 +141,8 @@ async def fetch_articles_for_intent(intent: Intent) -> NewsSearchResponse:
             ))
         
         return NewsSearchResponse(
-            city=intent.city,
-            country=intent.country,
+            city=intent.city or "",
+            country=intent.country or "",
             timeframe=intent.timeframe,
             focus=intent.focus,
             query_used=query,

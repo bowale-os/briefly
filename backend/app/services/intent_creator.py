@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import TypedDict
 
-from app.models.intent import Intent
+from app.schemas.intent import Intent
 from app.services.llm_client import call_llm_json
 
 
@@ -67,6 +67,8 @@ Return STRICT JSON with the following keys:
 - country: full country name in English or null.
   Examples: "United States", "Nigeria", "Germany", "Luxembourg".
 
+-country can be null if the user wants global news or user did not specify country and city
+
 - timeframe: normalized string, for example:
   - "today" or "0d"
   - "1d"
@@ -78,17 +80,14 @@ Return STRICT JSON with the following keys:
     {_format_enum_list(FocusType)}
   ]
 
-- search_query: a short keyword-only query string optimized for the pygooglenews
-  Google News search.
-  Rules:
-  add the full country name to the beginning
-  for example: Nigeria (tourism or crime or churches), Lebanon (crime OR fishes OR seas)
-  - MUST include the city and/or country if known.
-  - Use 3–8 focused keywords, not the whole user sentence.
-  - You MAY use:
-    - OR for synonyms (e.g. environment OR climate)
-    - intitle: for very important words
-  - Avoid unusual symbols; stick to letters, numbers, spaces, quotes, OR, intitle:.
+- topic: a short word or phrase describing the specific subject of the query
+  Examples: "energy", "housing", "tech", "health", "tourism", "transport", "environment".
+
+- tags: an array of 2–6 short keywords that capture concrete facets of the query.
+  Examples for "crude oil news": ["oil", "prices", "OPEC", "production", "demand"].
+  Do not include the city or country here.
+
+  all these things must be added
 
 Examples:
 
@@ -135,20 +134,31 @@ async def create_intent_from_query(raw_query: str) -> Intent:
         user_prompt=f"User query: {raw_query}",
     )
 
+    # 1) Read from LLM result
+    topic = llm_result.get("topic")
+    tags = llm_result.get("tags")
+
+    # 2) Enforce: topic and tags must be present
+    if not topic:
+        topic = "general"  # or derive from intent_label/focus
+
+    if not tags or not isinstance(tags, list):
+        tags = []
+
+    # 3) Use normalized values when constructing Intent
     intent = Intent(
         raw_query=raw_query,
         intent_label=llm_result.get("intent_label", IntentLabel.local_news_overview.value),
         city=llm_result.get("city"),
-        country=llm_result.get("country"), 
+        country=llm_result.get("country"),
         country_code=llm_result.get("country_code"),
         timeframe=llm_result.get("timeframe"),
         focus=llm_result.get("focus", FocusType.general.value),
-        gn_search_query=llm_result.get("search_query")
+        topic=topic,
+        tags=tags,
     )
 
-    # If you want to persist the full country name, add a `country_name` field
-    # on SearchHistory and set it there.
-
     return intent
+
 
 
