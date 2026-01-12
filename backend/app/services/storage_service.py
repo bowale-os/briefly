@@ -29,11 +29,21 @@ async def upload_audio_and_get_url(data: bytes, filename: str) -> str:
     """
     Upload MP3 bytes to GCS and return a public URL.
     """
+
+    if not data:
+        raise RuntimeError("No audio data generated (empty bytes)")
+    
     client = _get_gcs_client()
     bucket = client.bucket(_BUCKET_NAME)
     blob = bucket.blob(filename)
 
+    print("UPLOAD bucket:", _BUCKET_NAME)
+    print("UPLOAD filename:", filename)
+    print("UPLOAD size:", len(data))
+
     # Upload from memory
     blob.upload_from_string(data, content_type="audio/mpeg")  
 
-    return f"https://storage.googleapis.com/{_BUCKET_NAME}/{filename}"
+    url = f"https://storage.googleapis.com/{_BUCKET_NAME}/{filename}"
+    print("UPLOAD public url:", url)
+    return url

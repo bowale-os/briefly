@@ -26,5 +26,5 @@ class AudioBriefing(SQLModel, table=True):
 
     script: str = Field(nullable=False)          # intro + narration text
     audio_url: str = Field(nullable=False)       # GCS URL
-
+    audio_filename: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
