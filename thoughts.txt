@@ -5,3 +5,14 @@ we'll incorporate that into their eperience....
 think sbout making user_id in intent and searchhistry optional....
 
 the first sentence of the summary has arepitition from intro and sumamry beginning
+
+
+users shiuld be able to see all their breifing display on a page
+they should be able to see their search history..
+they should be able to download mp3 of the breifings??
+there should be analytics part to their experience..
+Users should be able to search their old briefings,
+they should be able to reedit a brefing and get a new one?
+they should have briefing templates, is the persona method a good idea??
+users should be able to save interests and filters,
+they should be able to schedule posts, weekly or daily like a subscription
