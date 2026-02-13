@@ -1,1 +1,5 @@
-backend/briefly-482211-eae1ca4ba467.json
+.env
+backend/briefly-json.json
+__pycache__
+.venv
+alembic
