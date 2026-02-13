@@ -1,15 +1,17 @@
 # app/main.py
 from fastapi import FastAPI
+import app.core.event_loop
 
 from app.core.db import init_db
 from app.api import api_router
 
-app = FastAPI(title="News Persona API")
+app = FastAPI(title="briefly API")
 
 
 @app.on_event("startup")
 async def on_startup():
-    await init_db()
+    # await init_db()
+    pass
 
 
 @app.get("/health")
