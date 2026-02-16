@@ -24,7 +24,7 @@ class Intent(SQLModel):
     user_id: uuid.UUID = None
     city: Optional[str] = None
     country: Optional[str] = None
-    country_code: str = None
+    country_code: Optional[str] = None
     timeframe: Optional[str] = None
     focus: str
     topic: str | None = None 

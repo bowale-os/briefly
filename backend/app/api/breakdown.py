@@ -18,7 +18,7 @@ from app.services.intent_creator import create_intent_from_query
 from app.services.news_service import fetch_articles_for_intent
 from app.services.briefing_service import build_brief_intro, build_narration_text
 from app.services.voice_service import synthesize_briefing_to_bytes, make_briefing_filename
-from app.services.storage_service import upload_audio_and_get_url
+from app.services.storage_service import upload_audio_and_get_signed_url
 
 from app.api.deps import get_current_user
 
@@ -100,7 +100,7 @@ async def intent_to_voice(
     )
 
     filename = make_briefing_filename()
-    audio_url = await upload_audio_and_get_url(audio_bytes, filename)
+    audio_url = await upload_audio_and_get_signed_url(audio_bytes, filename)
     intent = intent
 
     audio_briefing = AudioBriefing(
