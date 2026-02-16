@@ -18,6 +18,5 @@ users should be able to save interests and filters,
 they should be able to schedule posts, weekly or daily like a subscription
 
 
-
 on the website, a settings page from which they cna edit their personal info, yeah!
 user could have preferences of news outlets
