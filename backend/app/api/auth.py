@@ -32,10 +32,17 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class SignupResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user_id: str
+    email: str
+
+
 # ----- Routes -----
 
 
-@router.post("/signup", response_model=TokenResponse, status_code=201)
+@router.post("/signup", response_model=SignupResponse, status_code=201)
 async def signup(payload: SignupRequest, db: AsyncSession = Depends(get_db)):
     # Check if user exists
     stmt = select(User).where(User.email == payload.email)
@@ -53,7 +60,7 @@ async def signup(payload: SignupRequest, db: AsyncSession = Depends(get_db)):
     await db.refresh(user)
 
     token = create_access_token(subject=str(user.id), expires_delta=timedelta(hours=settings.ACCESS_TOKEN_EXPIRE))
-    return TokenResponse(access_token=token)
+    return SignupResponse(access_token=token, user_id=str(user.id), email=user.email)
 
 
 @router.post("/login", response_model=TokenResponse)
