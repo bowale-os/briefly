@@ -9,16 +9,18 @@ from app.api import api_router
 app = FastAPI(title="briefly API")
 
 # CORS configuration
-# allow_origin_regex covers:
-#   - every Vercel preview/production deployment (*.vercel.app)
-#   - local dev on any machine
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.+\.vercel\.app|http://localhost:\d+|http://10\.\d+\.\d+\.\d+:\d+",
+    allow_origins=[
+        "https://briefly-frontend-9rd4.onrender.com",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.on_event("startup")
 async def on_startup():
