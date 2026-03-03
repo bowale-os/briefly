@@ -1,12 +1,12 @@
 'use client'
 
 import React from 'react'
-import { Play, Clock } from 'lucide-react'
+import { Play, Clock, FileText } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Briefing } from '@/lib/api'
-import { getPersonaEmoji, getPersonaColor, formatDate, truncate, cn } from '@/lib/utils'
+import { getPersonaEmoji, getPersonaColor, formatDate, truncate } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
 interface BriefingCardProps {
@@ -35,10 +35,12 @@ export function BriefingCard({ briefing, index = 0 }: BriefingCardProps) {
             {/* Header with persona badge */}
             <div className="flex items-start justify-between mb-3">
               <div
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5",
-                  `persona-${briefing.persona}`
-                )}
+                className="px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5"
+                style={{
+                  color: personaColor,
+                  borderColor: `${personaColor}50`,
+                  backgroundColor: `${personaColor}12`,
+                }}
               >
                 <span>{personaEmoji}</span>
                 <span className="capitalize">{briefing.persona}</span>
@@ -59,7 +61,7 @@ export function BriefingCard({ briefing, index = 0 }: BriefingCardProps) {
               {truncate(briefing.script, 120)}
             </p>
 
-            {/* Play button */}
+            {/* Open button — label and icon adapt to output mode */}
             <Button
               onClick={handlePlay}
               className="w-full group-hover:scale-105 transition-transform"
@@ -68,8 +70,11 @@ export function BriefingCard({ briefing, index = 0 }: BriefingCardProps) {
                 borderColor: personaColor,
               }}
             >
-              <Play className="h-4 w-4 mr-2" />
-              Listen Now
+              {briefing.output_mode === 'summary' ? (
+                <><FileText className="h-4 w-4 mr-2" />Read Summary</>
+              ) : (
+                <><Play className="h-4 w-4 mr-2" />Listen Now</>
+              )}
             </Button>
           </div>
 

@@ -108,19 +108,25 @@ async def intent_to_voice(
 
     full_script = f"{intro.strip()}\n\n{narration.strip()}"
 
-    audio_bytes = synthesize_briefing_to_bytes(
-        full_script=full_script,
-        voice_id=persona_cfg.elevenlabs_voice_id,
-    )
+    output_mode = payload.output_mode  # "audio", "summary", or "both"
+    wants_audio = output_mode in ("audio", "both")
 
-    filename = make_briefing_filename()
-    audio_url = await upload_audio_and_get_signed_url(audio_bytes, filename)
-    intent = intent
+    audio_url = None
+    filename = None
+
+    if wants_audio:
+        audio_bytes = synthesize_briefing_to_bytes(
+            full_script=full_script,
+            voice_id=persona_cfg.elevenlabs_voice_id,
+        )
+        filename = make_briefing_filename()
+        audio_url = await upload_audio_and_get_signed_url(audio_bytes, filename)
 
     audio_briefing = AudioBriefing(
         query=query,
         user_id=current_user.id,
         persona=payload.persona,
+        output_mode=output_mode,
         city=intent.city,
         country=intent.country,
         audio_url=audio_url,
@@ -133,15 +139,18 @@ async def intent_to_voice(
     await db.commit()
     await db.refresh(audio_briefing)
 
-
     return {
         "id": str(audio_briefing.id),
         "query": audio_briefing.query,
+        "persona": audio_briefing.persona,
         "persona_name": persona_cfg.display_name,
+        "output_mode": output_mode,
         "script": full_script,
         "city": audio_briefing.city,
         "country": audio_briefing.country,
-        "created_at": audio_briefing.created_at.isoformat(),
-        "has_audio": True
+        "audio_url": audio_url,
+        "audio_filename": filename,
+        "created_at": audio_briefing.created_at.isoformat() + "Z",
+        "has_audio": wants_audio,
     }
 

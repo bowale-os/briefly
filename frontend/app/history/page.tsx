@@ -11,12 +11,14 @@ import { BriefingCard } from '@/components/audio/BriefingCard'
 import { useAuthStore, useBriefingStore } from '@/store/useBriefingStore'
 import { briefingsAPI } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
-import { getPersonaEmoji } from '@/lib/utils'
+import { getPersonaEmoji, getPersonaColor } from '@/lib/utils'
 
 const personas = [
+  { id: 'analyst',    name: 'Analyst'    },
+  { id: 'journalist', name: 'Journalist' },
   { id: 'streetwise', name: 'Streetwise' },
-  { id: 'optimist', name: 'Optimist' },
-  { id: 'skeptic', name: 'Skeptic' },
+  { id: 'informant',  name: 'Informant'  },
+  { id: 'colleague',  name: 'Colleague'  },
 ]
 
 export default function HistoryPage() {
@@ -62,7 +64,7 @@ export default function HistoryPage() {
   const hasActiveFilters = searchQuery !== '' || selectedPersona !== null
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-background via-background to-muted/5">
+    <div className="flex h-screen overflow-hidden page-bg">
       {/* Sidebar */}
       <Sidebar currentPage="history" />
 
@@ -121,18 +123,25 @@ export default function HistoryPage() {
               >
                 All
               </Button>
-              {personas.map((persona) => (
-                <Button
-                  key={persona.id}
-                  variant={selectedPersona === persona.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedPersona(persona.id)}
-                  className="rounded-full"
-                >
-                  <span className="mr-1.5">{getPersonaEmoji(persona.id)}</span>
-                  {persona.name}
-                </Button>
-              ))}
+              {personas.map((persona) => {
+                const isActive = selectedPersona === persona.id
+                const color = getPersonaColor(persona.id)
+                return (
+                  <button
+                    key={persona.id}
+                    onClick={() => setSelectedPersona(isActive ? null : persona.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all"
+                    style={{
+                      borderColor: isActive ? color : 'transparent',
+                      backgroundColor: isActive ? `${color}18` : 'hsl(var(--muted))',
+                      color: isActive ? color : 'hsl(var(--muted-foreground))',
+                    }}
+                  >
+                    <span>{getPersonaEmoji(persona.id)}</span>
+                    {persona.name}
+                  </button>
+                )
+              })}
               {hasActiveFilters && (
                 <Button
                   variant="ghost"

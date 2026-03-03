@@ -83,17 +83,23 @@ export const authAPI = {
 }
 
 // Briefings API
+
+// What the user can pick for the output format
+export type OutputMode = 'audio' | 'summary' | 'both'
+
 export interface Briefing {
   id: string
   search_history_id: string
   city: string | null
   country: string
   script: string
-  audio_filename: string
   query: string
   persona: string
   user_id: string
-  audio_url: string
+  output_mode: OutputMode
+  // null when output_mode is "summary"
+  audio_url: string | null
+  audio_filename: string | null
   created_at: string
 }
 
@@ -104,6 +110,7 @@ export interface BriefingsResponse {
 export interface CreateBriefingRequest {
   query: string
   persona: string
+  output_mode: OutputMode
 }
 
 export const briefingsAPI = {

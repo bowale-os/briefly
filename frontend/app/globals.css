@@ -6,48 +6,89 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.75rem;
+    /* ── Light mode ────────────────────────────────────────────────────
+       Design intent: warm editorial feel — like a premium newspaper app.
+       Warm off-white background so pure-white cards visually lift off it.
+       Indigo primary gives the app a clear identity instead of near-black.
+       Muted ≠ accent so hover states are actually distinguishable.
+    ──────────────────────────────────────────────────────────────────── */
+
+    /* Warm off-white page — cards read as floating on top */
+    --background:           40 28% 96%;
+    --foreground:           226 24% 12%;
+
+    /* Pure white cards — contrast with the warm background */
+    --card:                 0 0% 100%;
+    --card-foreground:      226 24% 12%;
+
+    /* Popovers & dropdowns — same white, clearly opaque */
+    --popover:              0 0% 100%;
+    --popover-foreground:   226 24% 12%;
+
+    /* Brand color: deep indigo-violet */
+    --primary:              243 58% 50%;
+    --primary-foreground:   0 0% 100%;
+
+    /* Subtle tinted chip/badge backgrounds */
+    --secondary:            230 30% 94%;
+    --secondary-foreground: 226 24% 20%;
+
+    /* Muted surfaces (textarea bg, usage pill, etc.) */
+    --muted:                220 18% 92%;
+    --muted-foreground:     220 10% 46%;
+
+    /* Hover / active highlight — clearly darker than muted */
+    --accent:               220 18% 86%;
+    --accent-foreground:    226 24% 12%;
+
+    --destructive:          4 86% 56%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Visible but gentle borders */
+    --border:               220 16% 82%;
+    --input:                220 16% 82%;
+
+    /* Focus ring matches primary */
+    --ring:                 243 58% 50%;
+    --radius:               0.75rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* ── Dark mode ─────────────────────────────────────────────────────
+       Deep cool-dark background. Cards are a step lighter so they lift
+       off the page. Primary lightens to remain readable on dark surfaces.
+    ──────────────────────────────────────────────────────────────────── */
+
+    --background:           228 22% 8%;
+    --foreground:           214 20% 95%;
+
+    /* Cards are visibly lighter than the background */
+    --card:                 228 20% 12%;
+    --card-foreground:      214 20% 95%;
+
+    --popover:              228 20% 12%;
+    --popover-foreground:   214 20% 95%;
+
+    /* Lighter indigo so it reads well on dark */
+    --primary:              243 80% 72%;
+    --primary-foreground:   228 22% 8%;
+
+    --secondary:            228 16% 18%;
+    --secondary-foreground: 214 20% 88%;
+
+    --muted:                228 16% 17%;
+    --muted-foreground:     220 12% 58%;
+
+    /* Distinct hover state */
+    --accent:               228 16% 22%;
+    --accent-foreground:    214 20% 95%;
+
+    --destructive:          4 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border:               228 16% 22%;
+    --input:                228 16% 22%;
+    --ring:                 243 80% 72%;
   }
 
   * {
@@ -95,6 +136,18 @@
 }
 
 @layer components {
+  /* Page-level background: flat warm base + a soft indigo radial glow
+     from the top, like a distant spotlight. Replaces the boring
+     white-to-grey directional gradients. Works in both light and dark. */
+  .page-bg {
+    background-color: hsl(var(--background));
+    background-image: radial-gradient(
+      ellipse 80% 55% at 50% -5%,
+      hsl(var(--primary) / 0.07),
+      transparent
+    );
+  }
+
   .glass-effect {
     @apply bg-white/10 backdrop-blur-xl border border-white/20;
   }
@@ -152,7 +205,7 @@
 
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #0f172a;
+    background-color: hsl(228 22% 8%);
   }
 }
 
