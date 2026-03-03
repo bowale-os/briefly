@@ -174,10 +174,10 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold mb-2">You've used all {FREE_AUDIO_LIMIT} free audio briefings</h2>
+                    <h2 className="text-xl font-semibold mb-2">You&apos;ve used all {FREE_AUDIO_LIMIT} free audio briefings</h2>
                     <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
                       Switch to <strong>Summary</strong> mode to keep generating written briefings for free,
-                      or head to your history to replay what you've heard.
+                      or head to your history to replay what you&apos;ve heard.
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">

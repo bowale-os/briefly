@@ -250,7 +250,7 @@ export default function PlayerPage() {
                         <div className="flex-1">
                           <p className="font-medium text-destructive mb-1">Audio unavailable</p>
                           <p className="text-muted-foreground leading-snug">
-                            The audio file couldn't be loaded — the link may have expired.
+                            The audio file couldn&apos;t be loaded — the link may have expired.
                             The written transcript is still available below.
                           </p>
                         </div>

@@ -115,7 +115,7 @@ export function AudioPlayer({ briefing, onNext, onPrevious }: AudioPlayerProps) 
 
   return (
     <div className="w-full">
-      <audio ref={audioRef} src={briefing.audio_url} preload="auto" />
+      <audio ref={audioRef} src={briefing.audio_url ?? undefined} preload="auto" />
 
       {/* Waveform visualization */}
       <div className="relative h-24 mb-4 rounded-lg overflow-hidden bg-gradient-to-r from-muted/50 to-muted/20">
