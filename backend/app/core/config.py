@@ -57,7 +57,7 @@ class Settings(BaseSettings):
 
     GCS_BUCKET_NAME: str
     GCP_PROJECT_ID: str
-    GCS_SERVICE_ACCOUNT_KEY_PATH: str
-    GCS_SERVICE_ACCOUNT_KEY_B64: str
+    GCS_SERVICE_ACCOUNT_KEY_PATH: str | None = None
+    GCS_SERVICE_ACCOUNT_KEY_B64: str | None = None
 
 settings = Settings()
