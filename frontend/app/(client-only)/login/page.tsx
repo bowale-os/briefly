@@ -57,7 +57,9 @@ export default function LoginPage() {
 
       const params = new URLSearchParams(window.location.search)
       const redirect = params.get('redirect') || '/dashboard'
-      router.push(redirect)
+      // Full page navigation so the middleware reads the newly-set cookie
+      // from a fresh HTTP request — router.push can race with cookie propagation
+      window.location.href = redirect
     } catch (err: any) {
       console.error('❌ Login error:', err)
       console.error('❌ Error response:', err.response?.data)
