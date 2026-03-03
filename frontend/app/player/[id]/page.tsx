@@ -144,7 +144,7 @@ export default function PlayerPage() {
           <Card className="p-8 max-w-md text-center">
             <h2 className="text-xl font-semibold mb-2">Briefing Not Found</h2>
             <p className="text-muted-foreground mb-4">
-              We couldn't find the briefing with ID: {params.id}
+              We couldn&apos;t find the briefing with ID: {params.id}
             </p>
             <div className="text-xs text-muted-foreground mb-4">
               Available briefings: {briefings.length}
