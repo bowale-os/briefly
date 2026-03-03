@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from datetime import datetime
 
 from app.core.db import get_db
@@ -12,6 +13,8 @@ from app.schemas.intent import IntentRequest, Intent
 from app.models.news_article import Article
 from app.models.persona import PERSONAS
 from app.models.audio_briefing import AudioBriefing
+
+FREE_BRIEFING_LIMIT = 2
 
 from app.services.intent_service import build_intent_and_log
 from app.services.intent_creator import create_intent_from_query
@@ -71,6 +74,17 @@ async def intent_to_voice(
     query = payload.query.strip()
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
+
+    # Enforce free briefing limit
+    count_result = await db.execute(
+        select(func.count()).select_from(AudioBriefing).where(AudioBriefing.user_id == current_user.id)
+    )
+    briefing_count = count_result.scalar() or 0
+    if briefing_count >= FREE_BRIEFING_LIMIT:
+        raise HTTPException(
+            status_code=403,
+            detail=f"You've used all {FREE_BRIEFING_LIMIT} free briefings. Thanks for trying Briefly!"
+        )
 
     user_id = str(current_user.id)
 

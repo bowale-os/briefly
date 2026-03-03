@@ -2,12 +2,13 @@
 
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Mic2, Home, Clock, LogOut, Moon, Sun, ChevronRight, User, GripVertical } from 'lucide-react'
+import { Mic2, Home, Clock, LogOut, Moon, Sun, ChevronRight, User, GripVertical, MessageSquare } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { useAuthStore, useBriefingStore } from '@/store/useBriefingStore'
 import { formatDate, getPersonaEmoji, cn } from '@/lib/utils'
 import { useState, useRef, useEffect } from 'react'
+import { FeedbackModal } from '@/components/FeedbackModal'
 
 interface SidebarProps {
   currentPage?: 'dashboard' | 'history'
@@ -19,8 +20,9 @@ export function Sidebar({ currentPage = 'dashboard' }: SidebarProps) {
   const { user, clearAuth } = useAuthStore()
   const { briefings } = useBriefingStore()
   
-  const [sidebarWidth, setSidebarWidth] = useState(320) // 320px = 80 * 4 (w-80)
+  const [sidebarWidth, setSidebarWidth] = useState(320)
   const [isResizing, setIsResizing] = useState(false)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   const sidebarRef = useRef<HTMLElement>(null)
 
   const handleLogout = () => {
@@ -200,6 +202,14 @@ export function Sidebar({ currentPage = 'dashboard' }: SidebarProps) {
           </Button>
           <Button
             variant="ghost"
+            className="w-full justify-start text-muted-foreground hover:text-foreground"
+            onClick={() => setFeedbackOpen(true)}
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Give Feedback
+          </Button>
+          <Button
+            variant="ghost"
             className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={handleLogout}
           >
@@ -228,6 +238,8 @@ export function Sidebar({ currentPage = 'dashboard' }: SidebarProps) {
       {isResizing && (
         <div className="fixed inset-0 z-50 cursor-col-resize" />
       )}
+
+      <FeedbackModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>
   )
 }

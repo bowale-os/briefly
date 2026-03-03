@@ -5,11 +5,13 @@ import app.core.event_loop
 
 from app.core.db import init_db
 from app.api import api_router
+import app.models.feedback  # registers Feedback table in SQLModel metadata
 
 app = FastAPI(title="briefly API")
 
 # CORS configuration
 origins = [
+    "https://vercel.com/daniel-sobowales-projects/briefly-frontend/CgtNBoeeuvj414akpXCC6YajKVLv",
     "https://briefly-frontend-beta.vercel.app",
     "http://10.154.80.55:3000",
     "http://localhost:3000",  # Add localhost for local dev too

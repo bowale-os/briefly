@@ -125,4 +125,16 @@ export const briefingsAPI = {
   // },
 }
 
+// Feedback API
+export interface FeedbackRequest {
+  rating?: number  // 1–5, optional
+  message: string
+}
+
+export const feedbackAPI = {
+  async submit(payload: FeedbackRequest): Promise<void> {
+    await api.post('/feedback', payload)
+  },
+}
+
 export default api
