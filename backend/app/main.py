@@ -10,6 +10,7 @@ app = FastAPI(title="briefly API")
 
 # CORS configuration
 origins = [
+    "https://briefly-frontend-beta.vercel.app",
     "http://10.154.80.55:3000",
     "http://localhost:3000",  # Add localhost for local dev too
 ]
