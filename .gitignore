@@ -3,5 +3,6 @@ backend/briefly-json.json
 __pycache__
 .venv
 alembic
+alembic.ini
 .next
 node_modules

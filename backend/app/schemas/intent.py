@@ -11,6 +11,8 @@ class IntentRequest(SQLModel):
     """What the client sends to /api/intent."""
     query: str
     persona: str
+    # "audio" = voice only, "summary" = text only, "both" = text + voice
+    output_mode: str = "both"
 
 
 class Intent(SQLModel):

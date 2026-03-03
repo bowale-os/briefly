@@ -25,6 +25,12 @@ class AudioBriefing(SQLModel, table=True):
     country: Optional[str] = Field(default=None)
 
     script: str = Field(nullable=False)          # intro + narration text
-    audio_url: str = Field(nullable=False)       # GCS URL
-    audio_filename: str = Field(nullable=False)
+
+    # "audio", "summary", or "both" — determines what was generated
+    output_mode: str = Field(default="both", nullable=False)
+
+    # Only populated when output_mode is "audio" or "both"
+    audio_url: Optional[str] = Field(default=None, nullable=True)
+    audio_filename: Optional[str] = Field(default=None, nullable=True)
+
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)

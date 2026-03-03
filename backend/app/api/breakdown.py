@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+from elevenlabs.core.api_error import ApiError as ElevenLabsApiError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import datetime
@@ -14,7 +15,7 @@ from app.models.news_article import Article
 from app.models.persona import PERSONAS
 from app.models.audio_briefing import AudioBriefing
 
-FREE_BRIEFING_LIMIT = 2
+FREE_BRIEFING_LIMIT = 3  # applies only to audio briefings; summaries are always free
 
 from app.services.intent_service import build_intent_and_log
 from app.services.intent_creator import create_intent_from_query
@@ -75,16 +76,21 @@ async def intent_to_voice(
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    # Enforce free briefing limit
-    count_result = await db.execute(
-        select(func.count()).select_from(AudioBriefing).where(AudioBriefing.user_id == current_user.id)
-    )
-    briefing_count = count_result.scalar() or 0
-    if briefing_count >= FREE_BRIEFING_LIMIT:
-        raise HTTPException(
-            status_code=403,
-            detail=f"You've used all {FREE_BRIEFING_LIMIT} free briefings. Thanks for trying Briefly!"
+    # Enforce free audio limit — summary-only briefings are always free
+    output_mode = payload.output_mode
+    if output_mode in ("audio", "both"):
+        count_result = await db.execute(
+            select(func.count()).select_from(AudioBriefing).where(
+                AudioBriefing.user_id == current_user.id,
+                AudioBriefing.output_mode.in_(["audio", "both"]),
+            )
         )
+        audio_count = count_result.scalar() or 0
+        if audio_count >= FREE_BRIEFING_LIMIT:
+            raise HTTPException(
+                status_code=403,
+                detail=f"You've used all {FREE_BRIEFING_LIMIT} free audio briefings. Switch to 'Summary' mode to keep reading for free.",
+            )
 
     user_id = str(current_user.id)
 
@@ -108,19 +114,35 @@ async def intent_to_voice(
 
     full_script = f"{intro.strip()}\n\n{narration.strip()}"
 
-    audio_bytes = synthesize_briefing_to_bytes(
-        full_script=full_script,
-        voice_id=persona_cfg.elevenlabs_voice_id,
-    )
+    wants_audio = output_mode in ("audio", "both")
 
-    filename = make_briefing_filename()
-    audio_url = await upload_audio_and_get_signed_url(audio_bytes, filename)
-    intent = intent
+    audio_url = None
+    filename = None
+
+    if wants_audio:
+        try:
+            audio_bytes = synthesize_briefing_to_bytes(
+                full_script=full_script,
+                voice_id=persona_cfg.elevenlabs_voice_id,
+            )
+            filename = make_briefing_filename()
+            audio_url = await upload_audio_and_get_signed_url(audio_bytes, filename)
+        except ElevenLabsApiError as exc:
+            if exc.status_code == 402:
+                raise HTTPException(
+                    status_code=503,
+                    detail="Audio generation requires a paid ElevenLabs plan. Switch to 'Summary' mode to get a written briefing instead.",
+                )
+            raise HTTPException(
+                status_code=503,
+                detail="Audio generation failed. Try again, or switch to 'Summary' mode.",
+            )
 
     audio_briefing = AudioBriefing(
         query=query,
         user_id=current_user.id,
         persona=payload.persona,
+        output_mode=output_mode,
         city=intent.city,
         country=intent.country,
         audio_url=audio_url,
@@ -133,15 +155,18 @@ async def intent_to_voice(
     await db.commit()
     await db.refresh(audio_briefing)
 
-
     return {
         "id": str(audio_briefing.id),
         "query": audio_briefing.query,
+        "persona": audio_briefing.persona,
         "persona_name": persona_cfg.display_name,
+        "output_mode": output_mode,
         "script": full_script,
         "city": audio_briefing.city,
         "country": audio_briefing.country,
-        "created_at": audio_briefing.created_at.isoformat(),
-        "has_audio": True
+        "audio_url": audio_url,
+        "audio_filename": filename,
+        "created_at": audio_briefing.created_at.isoformat() + "Z",
+        "has_audio": wants_audio,
     }
 
