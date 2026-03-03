@@ -2,8 +2,8 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Mic2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,11 +13,10 @@ import { authAPI } from '@/lib/api'
 import { useAuthStore } from '@/store/useBriefingStore'
 import { setAuthToken } from '@/lib/auth'
 
-function LoginForm() {
+export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { setAuth, initAuth, token } = useAuthStore()
-  
+
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,10 +26,11 @@ function LoginForm() {
   useEffect(() => {
     initAuth()
     if (token) {
-      const redirect = searchParams.get('redirect') || '/dashboard'
+      const params = new URLSearchParams(window.location.search)
+      const redirect = params.get('redirect') || '/dashboard'
       router.push(redirect)
     }
-  }, [token, initAuth, router, searchParams])
+  }, [token, initAuth, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,7 +49,7 @@ function LoginForm() {
 
       // CRITICAL: Set token in localStorage FIRST
       setAuthToken(response.access_token)
-      
+
       // THEN set cookie for middleware
       document.cookie = `auth_token=${response.access_token}; path=/; max-age=${60 * 60 * 24 * 7}`
 
@@ -62,7 +62,8 @@ function LoginForm() {
       // Update Zustand store
       setAuth(response.access_token, userData)
 
-      const redirect = searchParams.get('redirect') || '/dashboard'
+      const params = new URLSearchParams(window.location.search)
+      const redirect = params.get('redirect') || '/dashboard'
       router.push(redirect)
     } catch (err: any) {
       console.error('❌ Login error:', err)
@@ -197,13 +198,5 @@ function LoginForm() {
         </motion.div>
       </motion.div>
     </div>
-  )
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
   )
 }
