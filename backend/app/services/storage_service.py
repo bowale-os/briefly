@@ -9,19 +9,16 @@ from app.core.config import settings
 
 _BUCKET_NAME: Final[str] = settings.GCS_BUCKET_NAME
 
-_client: storage.Client | None = None
-_credentials = service_account.Credentials.from_service_account_file(
-    settings.GCS_SERVICE_ACCOUNT_KEY_PATH
-)
 
 def _get_gcs_client() -> storage.Client:
     global _client
     if _client is None:
         _client = storage.Client(
             project=settings.GCP_PROJECT_ID,
-            credentials=_credentials,
+            credentials=settings.gcs_credentials,
         )
     return _client
+
 
 async def upload_audio_and_get_signed_url(data: bytes, filename: str, minutes_valid: int = 60) -> str:
     """
