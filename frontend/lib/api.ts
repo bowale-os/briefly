@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '')
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL);
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -52,6 +52,11 @@ export interface AuthResponse {
   token_type: string
 }
 
+export interface SignupResponse extends AuthResponse {
+  user_id: string
+  email: string
+}
+
 export interface User {
   id: string
   email: string
@@ -71,7 +76,7 @@ export const authAPI = {
     return data
   },
 
-  async signup(credentials: SignupCredentials): Promise<AuthResponse> {
+  async signup(credentials: SignupCredentials): Promise<SignupResponse> {
     const { data } = await axios.post(`${API_BASE_URL}/auth/signup`, credentials)
     return data
   },

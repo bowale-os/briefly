@@ -38,29 +38,22 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      let response
+      let userData
+
       if (isLogin) {
-        response = await authAPI.login({ username: email, password })
+        const response = await authAPI.login({ username: email, password })
+        setAuthToken(response.access_token)
+        document.cookie = `auth_token=${response.access_token}; path=/; max-age=${60 * 60 * 24 * 7}`
+        userData = await authAPI.getMe()
+        setAuth(response.access_token, userData)
       } else {
-        response = await authAPI.signup({ email, password })
+        // Signup returns user data directly — no second round-trip needed
+        const response = await authAPI.signup({ email, password })
+        setAuthToken(response.access_token)
+        document.cookie = `auth_token=${response.access_token}; path=/; max-age=${60 * 60 * 24 * 7}`
+        userData = { id: response.user_id, email: response.email }
+        setAuth(response.access_token, userData)
       }
-
-      console.log('✅ Login response:', response)
-
-      // CRITICAL: Set token in localStorage FIRST
-      setAuthToken(response.access_token)
-
-      // THEN set cookie for middleware
-      document.cookie = `auth_token=${response.access_token}; path=/; max-age=${60 * 60 * 24 * 7}`
-
-      console.log('✅ Token saved, fetching user...')
-
-      // NOW fetch user data (token is in localStorage, axios will use it)
-      const userData = await authAPI.getMe()
-      console.log('✅ User data:', userData)
-
-      // Update Zustand store
-      setAuth(response.access_token, userData)
 
       const params = new URLSearchParams(window.location.search)
       const redirect = params.get('redirect') || '/dashboard'
