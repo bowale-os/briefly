@@ -127,7 +127,8 @@ export const briefingsAPI = {
 
 // Feedback API
 export interface FeedbackRequest {
-  rating?: number  // 1–5, optional
+  rating?: number              // 1–5, optional
+  likely_to_recommend?: string // 0–10 NPS score, optional
   message: string
 }
 

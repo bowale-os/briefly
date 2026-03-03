@@ -19,6 +19,6 @@ class Feedback(SQLModel, table=True):
 
     user_id: Optional[uuid.UUID] = Field(default=None, nullable=True, index=True)
     rating: Optional[int] = Field(default=None, nullable=True)  # 1–5
+    likely_to_recommend: Optional[str] = Field(default=None, nullable=True)  
     message: str = Field(nullable=False)
-
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)

@@ -28,7 +28,7 @@ class SearchHistory(SQLModel, table=True):
 
     city: Optional[str] = Field(default=None, index=True, nullable=True)
     country: Optional[str] = Field(default=None, index=True, nullable=True)
-    country_code: Optional[str] = Field(nullable=False)
+    country_code: Optional[str] = Field(nullable=True)
     timeframe: Optional[str] = Field(default=None, nullable=True)
     focus: Optional[str] = Field(default=None, nullable=True)
     intent_label: str = Field(nullable=False)

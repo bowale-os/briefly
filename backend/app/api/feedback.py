@@ -15,7 +15,8 @@ router = APIRouter()
 
 
 class FeedbackRequest(BaseModel):
-    rating: Optional[int] = None  # 1–5, optional
+    rating: Optional[int] = None              # 1–5, optional
+    likely_to_recommend: Optional[str] = None  # 0–10 NPS score, optional
     message: str
 
 
@@ -28,6 +29,7 @@ async def submit_feedback(
     feedback = Feedback(
         user_id=current_user.id,
         rating=payload.rating,
+        likely_to_recommend=payload.likely_to_recommend,
         message=payload.message,
     )
     db.add(feedback)

@@ -5,7 +5,6 @@ import app.core.event_loop
 
 from app.core.db import init_db
 from app.api import api_router
-import app.models.feedback  # registers Feedback table in SQLModel metadata
 
 app = FastAPI(title="briefly API")
 

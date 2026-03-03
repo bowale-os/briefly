@@ -11,18 +11,20 @@ interface FeedbackModalProps {
   onClose: () => void
 }
 
-const RATINGS = [
-  { value: 1, emoji: '😞', label: 'Poor' },
-  { value: 2, emoji: '😐', label: 'Okay' },
-  { value: 3, emoji: '🙂', label: 'Good' },
-  { value: 4, emoji: '😄', label: 'Great' },
-  { value: 5, emoji: '🤩', label: 'Loved it' },
-]
+const RATING_LABELS: Record<number, string> = {
+  1: 'Poor',
+  2: 'Okay',
+  3: 'Good',
+  4: 'Great',
+  5: 'Excellent',
+}
+
+const NPS_SCORES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   const [rating, setRating] = useState<number | null>(null)
+  const [nps, setNps] = useState<number | null>(null)
   const [message, setMessage] = useState('')
-  const [hoveredRating, setHoveredRating] = useState<number | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -31,7 +33,11 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
     if (!message.trim()) return
     setIsSubmitting(true)
     try {
-      await feedbackAPI.submit({ rating: rating ?? undefined, message: message.trim() })
+      await feedbackAPI.submit({
+        rating: rating ?? undefined,
+        likely_to_recommend: nps !== null ? String(nps) : undefined,
+        message: message.trim(),
+      })
       setSubmitted(true)
     } catch {
       // Silently fail — feedback loss is not critical
@@ -42,15 +48,13 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
   const handleClose = () => {
     onClose()
-    // Reset after the animation plays out
     setTimeout(() => {
       setRating(null)
+      setNps(null)
       setMessage('')
       setSubmitted(false)
     }, 300)
   }
-
-  const activeRating = hoveredRating ?? rating
 
   return (
     <AnimatePresence>
@@ -71,10 +75,9 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2 }}
-            className="fixed z-50 bottom-6 left-6 w-[340px] bg-card border border-border rounded-2xl shadow-2xl"
+            className="fixed z-50 bottom-6 left-6 w-[360px] bg-card border border-border rounded-2xl shadow-2xl"
           >
             {submitted ? (
-              /* Thank-you state */
               <div className="p-6 text-center space-y-3">
                 <CheckCircle2 className="h-10 w-10 text-primary mx-auto" />
                 <h3 className="font-semibold text-lg">Thanks for the feedback!</h3>
@@ -86,7 +89,6 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                 </Button>
               </div>
             ) : (
-              /* Feedback form */
               <form onSubmit={handleSubmit}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border">
@@ -103,46 +105,67 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                   </button>
                 </div>
 
-                <div className="p-5 space-y-4">
-                  {/* Emoji Rating */}
+                <div className="p-5 space-y-5">
+                  {/* Overall rating 1–5 */}
                   <div>
-                    <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
-                      How was your experience?
-                    </p>
-                    <div className="flex justify-between">
-                      {RATINGS.map((r) => (
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                        Overall experience
+                      </p>
+                      {rating !== null && (
+                        <span className="text-xs text-muted-foreground">
+                          {RATING_LABELS[rating]}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((n) => (
                         <button
-                          key={r.value}
+                          key={n}
                           type="button"
-                          onClick={() => setRating(r.value)}
-                          onMouseEnter={() => setHoveredRating(r.value)}
-                          onMouseLeave={() => setHoveredRating(null)}
-                          className="flex flex-col items-center gap-1 group"
+                          onClick={() => setRating(n)}
+                          className={`flex-1 h-9 rounded-lg text-sm font-medium border transition-colors ${
+                            rating === n
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-muted/50 border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                          }`}
                         >
-                          <span
-                            className={`text-2xl transition-transform duration-100 ${
-                              activeRating === r.value ? 'scale-125' : 'scale-100 opacity-50 group-hover:opacity-100'
-                            }`}
-                          >
-                            {r.emoji}
-                          </span>
-                          <span
-                            className={`text-[10px] transition-opacity ${
-                              activeRating === r.value
-                                ? 'opacity-100 text-foreground font-medium'
-                                : 'opacity-0 group-hover:opacity-60'
-                            }`}
-                          >
-                            {r.label}
-                          </span>
+                          {n}
                         </button>
                       ))}
                     </div>
                   </div>
 
+                  {/* NPS — likely to recommend 0–10 */}
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">
+                      How likely are you to recommend Briefly?
+                    </p>
+                    <div className="flex gap-1">
+                      {NPS_SCORES.map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setNps(n)}
+                          className={`flex-1 h-8 rounded text-xs font-medium border transition-colors ${
+                            nps === n
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-muted/50 border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-[10px] text-muted-foreground">Not at all</span>
+                      <span className="text-[10px] text-muted-foreground">Extremely likely</span>
+                    </div>
+                  </div>
+
                   {/* Message */}
                   <div>
-                    <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">
                       Anything else on your mind?
                     </p>
                     <textarea
