@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Send, Loader2, ChevronDown, Check, Lock, Volume2, FileText, Layers } from 'lucide-react'
+import { Sparkles, Send, Loader2, ChevronDown, Check, Lock, Volume2, FileText, Layers, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Sidebar } from '@/components/Sidebar'
@@ -12,7 +12,7 @@ import { briefingsAPI, OutputMode } from '@/lib/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getPersonaEmoji, getPersonaColor } from '@/lib/utils'
 
-const FREE_LIMIT = 2
+const FREE_AUDIO_LIMIT = 3
 
 // These match the backend PERSONAS dict exactly (persona.py)
 const PERSONAS = [
@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [selectedOutputMode, setSelectedOutputMode] = useState<OutputMode>('both')
   const [isFocused, setIsFocused] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
 
   useEffect(() => {
     initAuth()
@@ -80,10 +81,15 @@ export default function DashboardPage() {
   const createMutation = useMutation({
     mutationFn: briefingsAPI.createBriefing,
     onSuccess: (newBriefing) => {
+      setCreateError(null)
       addBriefing(newBriefing)
       queryClient.invalidateQueries({ queryKey: ['briefings'] })
       setQuery('')
       router.push(`/player/${newBriefing.id}`)
+    },
+    onError: (error: unknown) => {
+      const detail = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      setCreateError(detail ?? 'Something went wrong. Please try again.')
     },
   })
 
@@ -98,8 +104,11 @@ export default function DashboardPage() {
   }
 
   const selectedPersonaData = PERSONAS.find(p => p.id === selectedPersona) || PERSONAS[0]
-  const usedCount = briefings.length
-  const atLimit = usedCount >= FREE_LIMIT
+  // Only audio/both briefings count toward the free cap; summaries are always free
+  const audioUsedCount = briefings.filter(b => b.output_mode === 'audio' || b.output_mode === 'both').length
+  const atAudioLimit = audioUsedCount >= FREE_AUDIO_LIMIT
+  // Block the form when audio is requested and the cap is hit
+  const atLimit = atAudioLimit && selectedOutputMode !== 'summary'
 
   return (
     <div className="flex h-screen overflow-hidden page-bg">
@@ -133,20 +142,19 @@ export default function DashboardPage() {
                 transition={{ delay: 0.05 }}
                 className="mb-3 flex items-center justify-center gap-3"
               >
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/60 border border-border text-sm">
+                <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-muted/60 border border-border text-sm">
                   <div className="flex gap-1.5">
-                    {Array.from({ length: FREE_LIMIT }).map((_, i) => (
+                    {/* dots */}
+                    {Array.from({ length: FREE_AUDIO_LIMIT }).map((_, i) => (
                       <div
                         key={i}
                         className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                          i < usedCount ? 'bg-primary' : 'bg-muted-foreground/30'
+                          i < audioUsedCount ? 'bg-primary' : 'bg-muted-foreground/30'
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="text-muted-foreground">
-                    {usedCount} of {FREE_LIMIT} free briefings used
-                  </span>
+                  <span className="text-muted-foreground whitespace-nowrap">{audioUsedCount} of {FREE_AUDIO_LIMIT} free audio briefings used</span>
                 </div>
               </motion.div>
             )}
@@ -166,14 +174,14 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold mb-2">You've used both free briefings</h2>
+                    <h2 className="text-xl font-semibold mb-2">You've used all {FREE_AUDIO_LIMIT} free audio briefings</h2>
                     <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-                      Thanks for trying Briefly! Head to your history to replay what you've heard,
-                      or let us know what you think.
+                      Switch to <strong>Summary</strong> mode to keep generating written briefings for free,
+                      or head to your history to replay what you've heard.
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                    <Button variant="outline" onClick={() => router.push('/history')}>
+                    <Button onClick={() => router.push('/history')} variant="outline">
                       View my briefings
                     </Button>
                   </div>
@@ -342,11 +350,19 @@ export default function DashboardPage() {
                           <Send className="h-5 w-5 mr-2" />
                           Generate Briefing
                           <span className="ml-2 text-sm font-normal opacity-60">
-                            ({FREE_LIMIT - usedCount} left)
+                            ({FREE_AUDIO_LIMIT - audioUsedCount} left)
                           </span>
                         </>
                       )}
                     </Button>
+
+                    {/* Inline error message */}
+                    {createError && (
+                      <div className="flex items-start gap-2.5 p-3 rounded-xl border border-destructive/30 bg-destructive/5 text-sm">
+                        <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                        <p className="text-destructive/90 leading-snug">{createError}</p>
+                      </div>
+                    )}
 
                   </form>
                 </Card>
